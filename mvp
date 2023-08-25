@@ -1,0 +1,38 @@
+
+  static void createTrainingPipelineSample(
+      String project,
+      String trainingPipelineDisplayName,
+      String datasetId,
+      String trainingTaskDefinition,
+      String modelDisplayName)
+      throws IOException {
+    PipelineServiceSettings pipelineServiceSettings =
+        PipelineServiceSettings.newBuilder()
+            .setEndpoint("us-central1-aiplatform.googleapis.com:443")
+            .build();
+
+    // Initialize client that will be used to send requests. This client only needs to be created
+    // once, and can be reused for multiple requests. After completing all of your requests, call
+    // the "close" method on the client to safely clean up any remaining background resources.
+    try (PipelineServiceClient pipelineServiceClient =
+        PipelineServiceClient.create(pipelineServiceSettings)) {
+      String location = "us-central1";
+      LocationName locationName = LocationName.of(project, location);
+
+      String jsonString =
+          "{\"multiLabel\": false, \"modelType\": \"CLOUD\", \"budgetMilliNodeHours\": 8000,"
+              + " \"disableEarlyStopping\": false}";
+      Value.Builder trainingTaskInputs = Value.newBuilder();
+      JsonFormat.parser().merge(jsonString, trainingTaskInputs);
+
+      InputDataConfig trainingInputDataConfig =
+          InputDataConfig.newBuilder().setDatasetId(datasetId).build();
+      Model model = Model.newBuilder().setDisplayName(modelDisplayName).build();
+      TrainingPipeline trainingPipeline =
+          TrainingPipeline.newBuilder()
+              .setDisplayName(trainingPipelineDisplayName)
+              .setTrainingTaskDefinition(trainingTaskDefinition)
+              .setTrainingTaskInputs(trainingTaskInputs)
+              .setInputDataConfig(trainingInputDataConfig)
+              .setModelToUpload(model)
+              .build();
